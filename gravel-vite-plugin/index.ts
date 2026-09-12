@@ -81,6 +81,8 @@ interface GravelPlugin extends Plugin {
 
 type DevServerUrl = `${"http" | "https"}://${string}:${number}`;
 
+const DEV_SERVER_ORIGIN_PLACEHOLDER = "http://__gravel_vite_placeholder__.test";
+
 let exitHandlersBound = false;
 
 export const refreshPaths = ["resources/views/**"].filter((path) =>
@@ -197,7 +199,8 @@ function resolveGravelPlugin(
           (command === "build" ? resolveBase(pluginConfig, assetUrl) : ""),
         publicDir: userConfig.publicDir ?? false,
         build: {
-          manifest: userConfig.build?.manifest ?? "manifest.json",
+          // manifest: userConfig.build?.manifest ?? "manifest.json",
+          manifest: userConfig.build?.manifest ?? true,
           outDir: config.build?.outDir ?? resolveOutDir(pluginConfig),
           rolldownOptions: {
             input:
@@ -208,9 +211,9 @@ function resolveGravelPlugin(
           assetsInlineLimit: userConfig.build?.assetsInlineLimit ?? 0,
         },
         server: {
-          // origin:
-          //   userConfig.server?.origin ??
-          //   "http://__laravel_vite_placeholder__.test",
+          origin:
+            userConfig.server?.origin ??
+            (command === "serve" ? DEV_SERVER_ORIGIN_PLACEHOLDER : undefined),
           cors: userConfig.server?.cors ?? {
             origin: userConfig.server?.origin ?? [
               defaultAllowedOrigins,
@@ -240,6 +243,12 @@ function resolveGravelPlugin(
       resolvedConfig = config;
     },
 
+    transform(code) {
+      if (resolvedConfig.command === "serve" && viteDevServerUrl) {
+        return code.replaceAll(DEV_SERVER_ORIGIN_PLACEHOLDER, viteDevServerUrl);
+      }
+    },
+
     configureServer(server) {
       if (process.env.VITEST !== undefined) {
         return;
@@ -255,9 +264,11 @@ function resolveGravelPlugin(
           x: string | AddressInfo | null | undefined,
         ): x is AddressInfo => typeof x === "object" && x !== null;
         if (isAddressInfo(address)) {
-          viteDevServerUrl = userConfig.server?.origin
-            ? (userConfig.server.origin as DevServerUrl)
-            : resolveDevServerUrl(address, server.config);
+          viteDevServerUrl =
+            userConfig.server?.origin &&
+            userConfig.server.origin !== DEV_SERVER_ORIGIN_PLACEHOLDER
+              ? (userConfig.server.origin as DevServerUrl)
+              : resolveDevServerUrl(address, server.config);
 
           const hotFileParentDirectory = path.dirname(pluginConfig.hotFile);
 
