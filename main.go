@@ -5,7 +5,6 @@ import (
 	"encoding/json/v2"
 	"io"
 	"io/fs"
-	"log"
 	"net/http"
 	"slices"
 
@@ -27,14 +26,6 @@ func main() {
 	))
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.URL)
-		if r.URL.Path != "/" {
-			http.FileServerFS(Must(fs.Sub(publicFS, "public"))).ServeHTTP(w, r)
-			return
-		}
-		inertia.Render(w, r, "Welcome")
-	})
 	mux.HandleFunc("/demos", func(w http.ResponseWriter, r *http.Request) {
 		inertia.Render(w, r, "Demos")
 	})
@@ -45,6 +36,10 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		json.MarshalWrite(w, map[string]string{"hello": "world"})
 	})
+	mux.HandleFunc("/{$}", func(w http.ResponseWriter, r *http.Request) {
+		inertia.Render(w, r, "Welcome")
+	})
+	mux.Handle("/", http.FileServerFS(Must(fs.Sub(publicFS, "public"))))
 
 	http.ListenAndServe(":8000", inertia.Middleware(ErrorMiddleware(mux)))
 }
