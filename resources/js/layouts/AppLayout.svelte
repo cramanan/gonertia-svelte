@@ -16,7 +16,7 @@
     class="border-t border-[#e3e3e0] px-6 py-6 text-center text-sm text-[#706f6c] dark:border-[#3E3E3A] dark:text-[#A1A09A]"
   >
     <p>
-      &copy; {new Date().getFullYear()} Go Discovery. Built with
+      &copy; {new Date().getFullYear()} Gravel. Built with
       <a
         href="https://go.dev"
         target="_blank"

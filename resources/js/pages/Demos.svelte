@@ -8,6 +8,16 @@
 
   const demos = [
     {
+      title: "Error Pages",
+      description: "Errors renders in a special page with the right HTTP status",
+      href: "/non-existent",
+    },
+    {
+      title: "Static Asset Handling",
+      description: "...",
+      href: "/demos/assets",
+    },
+    {
       title: "API Fetching",
       description: "Fetch JSON from a Go endpoint and render the response.",
       href: "/demos/api-fetching",

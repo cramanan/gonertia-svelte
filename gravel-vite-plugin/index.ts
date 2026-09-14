@@ -186,6 +186,12 @@ function resolveGravelPlugin(
     "@": "/resources/js",
   };
 
+  const removeHotFile = () => {
+    try {
+      fs.rmSync(pluginConfig.hotFile);
+    } catch {}
+  };
+
   return {
     name: "gravel",
     enforce: "post",
@@ -199,8 +205,7 @@ function resolveGravelPlugin(
           (command === "build" ? resolveBase(pluginConfig, assetUrl) : ""),
         publicDir: userConfig.publicDir ?? false,
         build: {
-          // manifest: userConfig.build?.manifest ?? "manifest.json",
-          manifest: userConfig.build?.manifest ?? true,
+          manifest: userConfig.build?.manifest ?? "manifest.json",
           outDir: config.build?.outDir ?? resolveOutDir(pluginConfig),
           rolldownOptions: {
             input:
@@ -242,6 +247,10 @@ function resolveGravelPlugin(
     configResolved(config) {
       resolvedConfig = config;
     },
+
+    buildStart: removeHotFile,
+
+    buildEnd: removeHotFile,
 
     transform(code) {
       if (resolvedConfig.command === "serve" && viteDevServerUrl) {

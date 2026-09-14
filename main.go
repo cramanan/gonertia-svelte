@@ -3,8 +3,10 @@ package main
 import (
 	"embed"
 	"encoding/json/v2"
+	"gravel/inertia"
 	"io"
 	"io/fs"
+	"log"
 	"net/http"
 	"slices"
 
@@ -17,13 +19,12 @@ var rootTemplateBs []byte
 //go:embed public
 var publicFS embed.FS
 
-var inertia *gonertia.ViteInstance
-
 func main() {
-	inertia = Must(gonertia.NewViteFromFS(
+	// This sets up inertia as a package
+	inertia.Init(Must(gonertia.NewViteFromFS(
 		Must(gonertia.NewFromBytes(rootTemplateBs)),
 		publicFS,
-	))
+	)))
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/demos", func(w http.ResponseWriter, r *http.Request) {
@@ -32,16 +33,18 @@ func main() {
 	mux.HandleFunc("/demos/api-fetching", func(w http.ResponseWriter, r *http.Request) {
 		inertia.Render(w, r, "demos/ApiFetching")
 	})
-	mux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/status", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.MarshalWrite(w, map[string]string{"hello": "world"})
+		json.MarshalWrite(w, map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("/{$}", func(w http.ResponseWriter, r *http.Request) {
 		inertia.Render(w, r, "Welcome")
 	})
 	mux.Handle("/", http.FileServerFS(Must(fs.Sub(publicFS, "public"))))
 
-	http.ListenAndServe(":8000", inertia.Middleware(ErrorMiddleware(mux)))
+	port := ":8000"
+	log.Printf("HTTP server listening on port %s\n", port)
+	http.ListenAndServe(port, inertia.Middleware(ErrorMiddleware(mux)))
 }
 
 func Must[T any](obj T, err error) T {

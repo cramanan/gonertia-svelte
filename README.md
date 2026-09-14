@@ -1,4 +1,4 @@
-# Discovery — Go + Svelte + Inertia, single-binary app
+# Gravel — Go + Svelte + Inertia, single-binary app
 
 Go server-rendered Svelte app, glued via Inertia. Single static binary — Vite assets embedded at build time, no separate frontend server in production.
 
@@ -60,7 +60,7 @@ go build -o server .       # embeds dist, produces single binary
 Or via container:
 
 ```bash
-podman build -t discovery .
+podman build -t gravel .
 ```
 
 Multi-stage: `pnpm build` in a node stage, then `go build` embeds the resulting `vite/dist` and rendered `index.html`, landing on `gcr.io/distroless/static:nonroot`.
