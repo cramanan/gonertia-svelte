@@ -18,6 +18,8 @@ func New(i *gonertia.ViteInstance) *View { return &View{inertia: i} }
 
 // Write renders component on the response.
 func (v *View) Write(w http.ResponseWriter, r *http.Request, component string, props gonertia.Props) error {
+	// Exposes the page to the root template so viteAssets can preload its lazy chunk.
+	r = r.WithContext(gonertia.SetTemplateDatum(r.Context(), "component", component))
 	return v.inertia.Render(w, r, component, props)
 }
 

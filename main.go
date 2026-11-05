@@ -46,7 +46,7 @@ func run(ctx context.Context, getenv func(string) string, stdout io.Writer) erro
 	if err != nil {
 		return fmt.Errorf("parse root template: %w", err)
 	}
-	vite, err := gonertia.NewViteFromFS(root, publicFS)
+	vite, err := gonertia.NewViteFromFS(root, publicFS, gonertia.WithAggressivePreload())
 	if err != nil {
 		return fmt.Errorf("load vite manifest: %w", err)
 	}
