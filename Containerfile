@@ -41,4 +41,8 @@ FROM gcr.io/distroless/static:nonroot
 WORKDIR /app
 COPY --from=go-builder /app/server /app/server
 
+# With THP on "always", the kernel backs the Go heap with 2 MB huge pages:
+# idle RSS jumps between ~5 and ~7 MB per start instead of ~2.5 MB.
+ENV GODEBUG=disablethp=1
+
 ENTRYPOINT [ "/app/server" ]
