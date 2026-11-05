@@ -7,7 +7,7 @@
     "dev": "concurrently -n go,vite -c cyan,magenta --kill-others \"air\" \"vp dev\"",
     "build": "vp build",
     "preview": "vp preview",
-    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsrs -p tsconfig.node.json",
     "prepare": "vp config"
   },
   "dependencies": {
@@ -25,6 +25,7 @@
     "laravel-vite-plugin": "^3.2.0",
     "svelte": "^5.57.0",
     "svelte-check": "^4.7.6",
+    "tsrs": "0.21.0-ts7.1.0-beta",
     "typescript": "~6.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
