@@ -21,12 +21,11 @@
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.13.3",
-    "picocolors": "^1.1.1",
+    "laravel-vite-plugin": "^3.2.0",
     "svelte": "^5.57.0",
     "svelte-check": "^4.7.6",
     "typescript": "~6.0.2",
     "vite": "catalog:",
-    "vite-plugin-full-reload": "^1.2.0",
     "vite-plus": "catalog:"
   }
 }

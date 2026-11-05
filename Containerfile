@@ -10,7 +10,6 @@ RUN --mount=type=cache,target=/pnpm-store,uid=1000,gid=1000 \
     npm_config_store_dir=/pnpm-store vp install --frozen-lockfile
 
 COPY --chown=vp:vp vite.config.ts svelte.config.js /app/
-COPY --chown=vp:vp gravel-vite-plugin /app/gravel-vite-plugin
 COPY --chown=vp:vp public /app/public
 COPY --chown=vp:vp resources /app/resources
 RUN vp build
