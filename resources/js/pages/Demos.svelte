@@ -5,6 +5,7 @@
 <script lang="ts">
   import { Link } from "@inertiajs/svelte";
   import AppHead from "@/components/AppHead.svelte";
+  import * as Card from "@/components/ui/card";
 
   const demos = [
     {
@@ -29,21 +30,20 @@
 
 <div class="mx-auto max-w-2xl px-6 py-12">
   <h1 class="mb-1 font-medium text-lg">Demos</h1>
-  <p class="mb-6 text-[#706f6c] dark:text-[#A1A09A]">
+  <p class="mb-6 text-muted-foreground">
     Small examples showing off features of this stack.
   </p>
 
-  <ul class="flex flex-col divide-y divide-[#e3e3e0] dark:divide-[#3E3E3A]">
+  <ul class="flex flex-col gap-3">
     {#each demos as demo (demo.href)}
       <li>
-        <Link
-          href={demo.href}
-          class="block py-4 hover:text-[#00ADD8] dark:hover:text-[#5DC9E2]"
-        >
-          <span class="font-medium">{demo.title}</span>
-          <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
-            {demo.description}
-          </p>
+        <Link href={demo.href} class="block">
+          <Card.Root class="transition-colors hover:bg-accent">
+            <Card.Header>
+              <Card.Title>{demo.title}</Card.Title>
+              <Card.Description>{demo.description}</Card.Description>
+            </Card.Header>
+          </Card.Root>
         </Link>
       </li>
     {/each}

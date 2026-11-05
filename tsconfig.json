@@ -1,4 +1,10 @@
 {
   "files": [],
-  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
+  // Read by the shadcn-svelte CLI to resolve the `@/` alias; tsconfig.app.json owns the real one.
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./resources/js/*"]
+    }
+  }
 }

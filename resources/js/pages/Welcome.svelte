@@ -3,6 +3,7 @@
 </script>
 <script lang="ts">
   import AppHead from "@/components/AppHead.svelte";
+  import { Button } from "@/components/ui/button";
 </script>
 
 <AppHead title="Welcome">
@@ -105,13 +106,9 @@
         </ul>
         <ul class="flex gap-3 text-sm leading-normal">
           <li>
-            <a
-              href="https://go.dev/solutions/cloud"
-              target="_blank"
-              class="inline-block rounded-sm border border-black bg-[#1b1b18] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
-            >
+            <Button href="https://go.dev/solutions/cloud" target="_blank">
               Deploy now
-            </a>
+            </Button>
           </li>
         </ul>
       </div>
