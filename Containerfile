@@ -1,18 +1,19 @@
-FROM node:24-alpine AS node-builder
+FROM ghcr.io/voidzero-dev/vite-plus:1.5.0 AS node-builder
 
-RUN corepack enable
+# Build image, not a clone: keep the `prepare` script (vp config) from installing git hooks.
+ENV VP_GIT_HOOKS=0
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml /app/
-RUN --mount=type=cache,target=/pnpm-store \
-    pnpm install --frozen-lockfile --store-dir /pnpm-store
+COPY --chown=vp:vp package.json pnpm-lock.yaml pnpm-workspace.yaml .node-version /app/
+RUN --mount=type=cache,target=/pnpm-store,uid=1000,gid=1000 \
+    npm_config_store_dir=/pnpm-store vp install --frozen-lockfile
 
-COPY vite.config.ts svelte.config.js /app/
-COPY gravel-vite-plugin gravel-vite-plugin
-COPY public public
-COPY resources resources
-RUN pnpm build
+COPY --chown=vp:vp vite.config.ts svelte.config.js /app/
+COPY --chown=vp:vp gravel-vite-plugin /app/gravel-vite-plugin
+COPY --chown=vp:vp public /app/public
+COPY --chown=vp:vp resources /app/resources
+RUN vp build
 
 FROM golang:1.27-alpine AS go-builder
 

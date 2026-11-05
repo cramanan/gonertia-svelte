@@ -20,9 +20,5 @@
       "@/*": ["./resources/js/*"]
     }
   },
-  "include": [
-    "resources/js/**/*.ts",
-    "resources/js/**/*.js",
-    "resources/js/**/*.svelte"
-  ]
+  "include": ["resources/js/**/*.ts", "resources/js/**/*.js", "resources/js/**/*.svelte"]
 }

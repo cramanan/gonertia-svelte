@@ -10,13 +10,11 @@ import {
   type ResolvedConfig,
   type Rolldown,
   type UserConfig,
-} from "vite";
+} from "vite-plus";
 import type { AddressInfo } from "node:net";
 import colors from "picocolors";
 import { fileURLToPath } from "node:url";
-import fullReload, {
-  type Config as FullReloadConfig,
-} from "vite-plugin-full-reload";
+import fullReload, { type Config as FullReloadConfig } from "vite-plugin-full-reload";
 
 interface PluginConfig {
   /**
@@ -101,9 +99,7 @@ function dirname(): string {
 /**
  * Convert the users configuration into a standard structure with defaults.
  */
-function resolvePluginConfig(
-  config: string | string[] | PluginConfig,
-): Required<PluginConfig> {
+function resolvePluginConfig(config: string | string[] | PluginConfig): Required<PluginConfig> {
   if (typeof config === "undefined") {
     throw new Error("gravel-vite-plugin: missing configuration.");
   }
@@ -127,15 +123,10 @@ function resolvePluginConfig(
   }
 
   if (typeof config.buildDirectory === "string") {
-    config.buildDirectory = config.buildDirectory
-      .trim()
-      .replace(/^\/+/, "")
-      .replace(/\/+$/, "");
+    config.buildDirectory = config.buildDirectory.trim().replace(/^\/+/, "").replace(/\/+$/, "");
 
     if (config.buildDirectory === "") {
-      throw new Error(
-        "laravel-vite-plugin: buildDirectory must be a subdirectory. E.g. 'build'.",
-      );
+      throw new Error("laravel-vite-plugin: buildDirectory must be a subdirectory. E.g. 'build'.");
     }
   }
 
@@ -148,13 +139,9 @@ function resolvePluginConfig(
     publicDirectory: config.publicDirectory ?? "public",
     buildDirectory: config.buildDirectory ?? "build",
     refresh: config.refresh ?? false,
-    hotFile:
-      config.hotFile ?? path.join(config.publicDirectory ?? "public", "hot"),
+    hotFile: config.hotFile ?? path.join(config.publicDirectory ?? "public", "hot"),
     transformOnServe: config.transformOnServe ?? ((code) => code),
-    assets:
-      typeof config.assets === "string"
-        ? [config.assets]
-        : (config.assets ?? []),
+    assets: typeof config.assets === "string" ? [config.assets] : (config.assets ?? []),
   };
 }
 
@@ -175,9 +162,7 @@ export default function gravel(
   ];
 }
 
-function resolveGravelPlugin(
-  pluginConfig: Required<PluginConfig>,
-): GravelPlugin {
+function resolveGravelPlugin(pluginConfig: Required<PluginConfig>): GravelPlugin {
   let viteDevServerUrl: DevServerUrl;
   let resolvedConfig: ResolvedConfig;
   let userConfig: UserConfig;
@@ -200,9 +185,7 @@ function resolveGravelPlugin(
       const env = loadEnv(mode, userConfig.envDir || process.cwd(), "");
       const assetUrl = env.ASSET_URL ?? "";
       return {
-        base:
-          userConfig.base ??
-          (command === "build" ? resolveBase(pluginConfig, assetUrl) : ""),
+        base: userConfig.base ?? (command === "build" ? resolveBase(pluginConfig, assetUrl) : ""),
         publicDir: userConfig.publicDir ?? false,
         build: {
           manifest: userConfig.build?.manifest ?? "manifest.json",
@@ -264,18 +247,15 @@ function resolveGravelPlugin(
       }
 
       const envDir = resolvedConfig.envDir || process.cwd();
-      const appUrl =
-        loadEnv(resolvedConfig.mode, envDir, "APP_URL").APP_URL ?? "undefined";
+      const appUrl = loadEnv(resolvedConfig.mode, envDir, "APP_URL").APP_URL ?? "undefined";
 
       server.httpServer?.once("listening", () => {
         const address = server.httpServer?.address();
-        const isAddressInfo = (
-          x: string | AddressInfo | null | undefined,
-        ): x is AddressInfo => typeof x === "object" && x !== null;
+        const isAddressInfo = (x: string | AddressInfo | null | undefined): x is AddressInfo =>
+          typeof x === "object" && x !== null;
         if (isAddressInfo(address)) {
           viteDevServerUrl =
-            userConfig.server?.origin &&
-            userConfig.server.origin !== DEV_SERVER_ORIGIN_PLACEHOLDER
+            userConfig.server?.origin && userConfig.server.origin !== DEV_SERVER_ORIGIN_PLACEHOLDER
               ? (userConfig.server.origin as DevServerUrl)
               : resolveDevServerUrl(address, server.config);
 
@@ -332,9 +312,7 @@ function resolveGravelPlugin(
   };
 }
 
-function resolveFullReloadConfig({
-  refresh: config,
-}: Required<PluginConfig>): PluginOption[] {
+function resolveFullReloadConfig({ refresh: config }: Required<PluginConfig>): PluginOption[] {
   if (typeof config === "boolean") {
     return [];
   }
@@ -351,9 +329,7 @@ function resolveFullReloadConfig({
     config = [{ paths: config }] as RefreshConfig[];
   }
 
-  return (config as RefreshConfig[]).flatMap((c) =>
-    fullReload(c.paths, c.config),
-  );
+  return (config as RefreshConfig[]).flatMap((c) => fullReload(c.paths, c.config));
 }
 
 /**
@@ -387,9 +363,7 @@ function resolveAssetPlugin(assets: string | string[]): Plugin[] {
 /**
  * Resolve the Vite input path from the configuration.
  */
-function resolveInput(
-  config: Required<PluginConfig>,
-): Rolldown.InputOption | undefined {
+function resolveInput(config: Required<PluginConfig>): Rolldown.InputOption | undefined {
   return config.input;
 }
 
@@ -397,12 +371,7 @@ function resolveInput(
  * Resolve the Vite base option from the configuration.
  */
 function resolveBase(config: Required<PluginConfig>, assetUrl: string): string {
-  return (
-    assetUrl +
-    (!assetUrl.endsWith("/") ? "/" : "") +
-    config.buildDirectory +
-    "/"
-  );
+  return assetUrl + (!assetUrl.endsWith("/") ? "/" : "") + config.buildDirectory + "/";
 }
 
 /**
@@ -412,10 +381,7 @@ function resolveOutDir(config: Required<PluginConfig>) {
   return path.join(config.publicDirectory, config.buildDirectory);
 }
 
-function resolveDevServerUrl(
-  address: AddressInfo,
-  config: ResolvedConfig,
-): DevServerUrl {
+function resolveDevServerUrl(address: AddressInfo, config: ResolvedConfig): DevServerUrl {
   const configHmrProtocol =
     typeof config.server.hmr === "object" ? config.server.hmr.protocol : null;
   const clientProtocol = configHmrProtocol
@@ -426,13 +392,9 @@ function resolveDevServerUrl(
   const serverProtocol = config.server.https ? "https" : "http";
   const protocol = clientProtocol ?? serverProtocol;
 
-  const configHmrHost =
-    typeof config.server.hmr === "object" ? config.server.hmr.host : null;
-  const configHost =
-    typeof config.server.host === "string" ? config.server.host : null;
-  const serverAddress = isIpv6(address)
-    ? `[${address.address}]`
-    : address.address;
+  const configHmrHost = typeof config.server.hmr === "object" ? config.server.hmr.host : null;
+  const configHost = typeof config.server.host === "string" ? config.server.host : null;
+  const serverAddress = isIpv6(address) ? `[${address.address}]` : address.address;
   const host = configHmrHost ?? configHost ?? serverAddress;
 
   const configHmrClientPort =
