@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vp dev",
+    "dev": "concurrently -n go,vite -c cyan,magenta --kill-others \"air\" \"vp dev\"",
     "build": "vp build",
     "preview": "vp preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
@@ -21,6 +21,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.13.3",
+    "concurrently": "^10.0.6",
     "laravel-vite-plugin": "^3.2.0",
     "svelte": "^5.57.0",
     "svelte-check": "^4.7.6",

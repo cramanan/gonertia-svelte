@@ -1,6 +1,6 @@
 # Gravel — Go + Svelte + Inertia, single-binary app
 
-Go server-rendered Svelte app, glued via Inertia. Single static binary — Vite assets embedded at build time, no separate frontend server in production.
+Go Backend-For-Frontend Svelte app, glued via Inertia. Single static binary — Vite assets embedded at build time, no separate frontend server in production.
 
 ## Stack
 
@@ -36,10 +36,10 @@ resources/
 
 ```bash
 pnpm install
-air              # hot-reload Go server (tags: hot) + Vite dev middleware
+pnpm dev         # air (Go hot reload) + vp dev (Vite HMR) via concurrently
 ```
 
-`air` rebuilds on `.go`/`.html` changes per `.air.toml`. Vite serves assets in dev mode via `vite_dev.go`.
+`pnpm dev` runs both processes with prefixed logs; Ctrl+C (or either process exiting) stops both. `air` rebuilds on `.go`/`.html` changes per `.air.toml`. Run `vp dev` alone for the Vite server only.
 
 ## Build
 
