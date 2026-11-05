@@ -12,3 +12,5 @@ peerDependencyRules:
     - vite
   allowedVersions:
     vite: "*"
+runtimeOnFail: ignore
+pmOnFail: ignore
