@@ -10,6 +10,7 @@ import (
 func Routes(mux *http.ServeMux, v *view.View, static http.Handler) {
 	mux.Handle("GET /{$}", v.Page("Welcome"))
 	mux.Handle("GET /demos", v.Page("Demos"))
+	mux.Handle("GET /demos/assets", v.Page("demos/Assets"))
 	mux.Handle("GET /demos/api-fetching", v.Page("demos/ApiFetching"))
 	mux.Handle("GET /api/status", api.Status())
 	mux.Handle("/", static)

@@ -14,7 +14,7 @@
     },
     {
       title: "Static Asset Handling",
-      description: "...",
+      description: "Vite-fingerprinted imports next to files served from public/.",
       href: "/demos/assets",
     },
     {
