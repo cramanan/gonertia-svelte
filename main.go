@@ -1,95 +1,87 @@
 package main
 
 import (
+	"cmp"
+	"context"
 	"embed"
-	"encoding/json/v2"
-	"gravel/inertia"
+	"errors"
+	"fmt"
 	"io"
 	"io/fs"
-	"log"
+	"log/slog"
 	"net/http"
-	"slices"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"gravel/internal/http/middlewares"
+	"gravel/internal/http/routes"
+	"gravel/internal/http/view"
 
 	"github.com/romsar/gonertia/v3"
 )
 
 //go:embed resources/views/index.html
-var rootTemplateBs []byte
+var rootTemplate []byte
 
-//go:embed public
+//go:embed all:public
 var publicFS embed.FS
 
 func main() {
-	// This sets up inertia as a package
-	inertia.Init(Must(gonertia.NewViteFromFS(
-		Must(gonertia.NewFromBytes(rootTemplateBs)),
-		publicFS,
-	)))
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	if err := run(ctx, os.Getenv, os.Stdout); err != nil {
+		slog.Error("run", "error", err)
+		os.Exit(1)
+	}
+}
+
+// run is the whole program; main only hands it the process (signals,
+// environment, stdout), so a test can run it with its own.
+func run(ctx context.Context, getenv func(string) string, stdout io.Writer) error {
+	slog.SetDefault(slog.New(slog.NewTextHandler(stdout, nil)))
+
+	root, err := gonertia.NewFromBytes(rootTemplate)
+	if err != nil {
+		return fmt.Errorf("parse root template: %w", err)
+	}
+	vite, err := gonertia.NewViteFromFS(root, publicFS)
+	if err != nil {
+		return fmt.Errorf("load vite manifest: %w", err)
+	}
+	v := view.New(vite)
+	public, err := fs.Sub(publicFS, "public")
+	if err != nil {
+		return err
+	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/demos", func(w http.ResponseWriter, r *http.Request) {
-		inertia.Render(w, r, "Demos")
-	})
-	mux.HandleFunc("/demos/api-fetching", func(w http.ResponseWriter, r *http.Request) {
-		inertia.Render(w, r, "demos/ApiFetching")
-	})
-	mux.HandleFunc("/api/status", func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.MarshalWrite(w, map[string]string{"status": "ok"})
-	})
-	mux.HandleFunc("/{$}", func(w http.ResponseWriter, r *http.Request) {
-		inertia.Render(w, r, "Welcome")
-	})
-	mux.Handle("/", http.FileServerFS(Must(fs.Sub(publicFS, "public"))))
+	routes.Routes(mux, v, http.FileServerFS(public))
+	var handler http.Handler = mux
+	handler = middlewares.Error(v)(handler)
+	handler = v.Middleware(handler)
 
-	port := ":8000"
-	log.Printf("HTTP server listening on port %s\n", port)
-	http.ListenAndServe(port, inertia.Middleware(ErrorMiddleware(mux)))
-}
-
-func Must[T any](obj T, err error) T {
-	if err != nil {
-		panic(err)
+	srv := &http.Server{
+		Addr:    cmp.Or(getenv("LISTEN_ADDR"), ":8000"),
+		Handler: handler,
 	}
-	return obj
-}
+	listenErr := make(chan error, 1)
+	go func() {
+		slog.Info("listening", "addr", srv.Addr)
+		listenErr <- srv.ListenAndServe()
+	}()
 
-type ErrorRecorder struct {
-	http.ResponseWriter
-	Code   int
-	Writer io.Writer
-}
-
-func NewErrorRecorder(w http.ResponseWriter) *ErrorRecorder {
-	return &ErrorRecorder{ResponseWriter: w, Code: http.StatusOK, Writer: w}
-}
-
-func (recorder *ErrorRecorder) WriteHeader(code int) {
-	recorder.Code = code
-	if slices.Contains(ErrorCodes, code) {
-		recorder.Writer = io.Discard
-		return
+	select {
+	case err := <-listenErr:
+		return fmt.Errorf("listen: %w", err)
+	case <-ctx.Done():
 	}
-	recorder.ResponseWriter.WriteHeader(code)
-}
 
-func (recorder *ErrorRecorder) Write(b []byte) (int, error) {
-	return recorder.Writer.Write(b)
-}
-
-var ErrorCodes = []int{
-	http.StatusInternalServerError,
-	http.StatusServiceUnavailable,
-	http.StatusNotFound,
-	http.StatusUnauthorized,
-}
-
-func ErrorMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		recorder := NewErrorRecorder(w)
-		next.ServeHTTP(recorder, r)
-		if slices.Contains(ErrorCodes, recorder.Code) {
-			inertia.Render(w, r, "Error", gonertia.Props{"status": recorder.Code})
-		}
-	})
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
 }

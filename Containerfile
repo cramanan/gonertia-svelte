@@ -26,13 +26,14 @@ RUN --mount=type=cache,target=/root/go/pkg/mod \
     --mount=type=secret,id=netrc,dst=/root/.netrc \
     go mod download
 
-COPY main.go /app/
+COPY main.go /app/main.go
+COPY internal /app/internal
 COPY --from=node-builder /app/public public
 COPY --from=node-builder /app/resources/views/index.html resources/views/index.html
 
 RUN --mount=type=cache,target=/root/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 go build -ldflags="-s -w -buildid=" -trimpath -o /app/server /app/main.go
+    CGO_ENABLED=0 go build -ldflags="-s -w -buildid=" -trimpath -o /app/server .
 
 
 FROM gcr.io/distroless/static:nonroot
